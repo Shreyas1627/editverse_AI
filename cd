@@ -1,0 +1,5 @@
+      PID    PPID    PGID     WINPID   TTY         UID    STIME COMMAND
+     1061       1    1061      17168  cons0     197609 18:02:07 /usr/bin/bash
+     1110       1    1110      14784  cons1     197609 18:09:59 /usr/bin/bash
+     1109    1061    1109      12672  cons0     197609 18:02:14 /c/Users/user/AppData/Local/Programs/Python/Python313/Scripts/uvicorn
+     1184    1110    1184      11948  cons1     197609 18:10:16 /usr/bin/PS

@@ -1,0 +1,24 @@
+# .gitignore
+
+# 1. Secrets (NEVER UPLOAD THESE)
+.env
+.env.txt
+
+# 2. Python System Files
+__pycache__/
+*.py[cod]
+
+# 3. Virtual Environment (Too big, not needed)
+.venv/
+venv/
+env/
+
+# 4. User Uploads & Temp Files (We don't want to save test videos)
+backend/temp_storage/
+backend/assets/
+*.mp4
+*.log
+
+# 5. OS Files
+.DS_Store
+Thumbs.db
