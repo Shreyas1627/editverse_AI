@@ -138,8 +138,9 @@ def apply_edits(input_path: str, actions: list) -> str:
                         analyzeduration=10000000
                     )
 
-                   
+                    music_stream = music_input.audio.filter('aresample', 48000).filter('channelconvert', channel_layout='stereo')
                     
+                  
                     # Apply volume adjustment
                     # 'inf' means infinite loop? No, simple input for MVP.
                     # We assume music is long enough. 
