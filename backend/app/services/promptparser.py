@@ -21,17 +21,22 @@ def parse_prompt(prompt_text: str) -> dict:
     
     OUTPUT FORMAT:
     You must return a JSON object with a key "actions", which is a list of actions.
-    Example: {"actions": [{"type": "trim", "start": 0, "end": 10}, {"type": "speed", "value": 1.5}]}
+    Example: {"actions": [{"type": "trim", "start": 0, "end": 10}, {"type": "fade", "kind": "in"}]}
 
     AVAILABLE ACTIONS:
     1. type: "trim" -> requires "start" (float), "end" (float)
     2. type: "speed" -> requires "value" (float, e.g., 0.5 for slow, 2.0 for fast)
     3. type: "filter" -> requires "name" (string, e.g., "grayscale")
     4. type: "add_text" -> requires "content" (string)
+    4. type: "add_text" -> requires "content" (string), optional "position" ("top", "bottom", "center")
+    5. type: "fade" -> requires "kind" ("in" or "out"), optional "duration" (float, default 1.0)
 
     RULES:
     - If the user mentions "funny" or "viral", assume they want 1.5x speed.
     - If the user mentions "sad" or "cinematic", assume they want 0.8x speed and grayscale.
+    - If the user says "intro" or "start", add a "fade in".
+    - If the user says "outro" or "end", add a "fade out".
+    - If the user says "title" or "headline", set text position to "top".
     - Return ONLY raw JSON. No markdown formatting.
     """
 
