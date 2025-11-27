@@ -84,20 +84,44 @@ def apply_edits(input_path: str, actions: list) -> str:
                 # For simple MVP, we assume factor is between 0.5 and 2.0
                 audio = audio.filter_('atempo', factor)
 
-            # --- TEXT OVERLAY (New!) ---
             elif action['type'] == 'add_text':
                 content = action.get('content', '')
-                # Draw text in center, size 64, white
+                pos = action.get('position', 'center')
+                
+                # Dynamic Positioning Logic
+                if pos == 'top':
+                    y_pos = '50' # 50 pixels padding from top
+                elif pos == 'bottom':
+                    y_pos = 'h-text_h-50' # 50 pixels padding from bottom
+                else:
+                    y_pos = '(h-text_h)/2' # Center
+
                 stream = stream.drawtext(
                     text=content,
                     fontfile=font_str,
                     fontsize=64,
                     fontcolor='white',
-                    x='(w-text_w)/2', 
-                    y='(h-text_h)/2',
+                    x='(w-text_w)/2', # Always center horizontally
+                    y=y_pos,          # Variable vertical position
                     borderw=2,
-                    bordercolor='black' 
+                    bordercolor='black'
                 )
+            # --- NEW: TRANSITIONS (Fade) ---
+            elif action['type'] == 'fade':
+                kind = action.get('kind', 'in')
+                dur = float(action.get('duration', 1.0))
+                
+                if kind == 'in':
+                    # Fade IN video from black starting at 0s
+                    stream = stream.filter('fade', type='in', start_time=0, duration=dur)
+                    # Fade IN audio starting at 0s
+                    audio = audio.filter('afade', type='in', start_time=0, duration=dur)
+                elif kind == 'out':
+                    # Fade OUT logic requires knowing total duration, which is complex in chaining.
+                    # For this MVP, we will skip fade-out to avoid crashes, or you can assume
+                    # it applies to the last N seconds if you track duration.
+                    # Let's stick to Fade IN for safety in Level 1.
+                    pass
 
         # 4. Output
         stream = ffmpeg.output(stream, audio, output_path)
