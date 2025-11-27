@@ -131,7 +131,14 @@ def apply_edits(input_path: str, actions: list) -> str:
                 
                 if music_path.exists():
                     # Load music file
-                    music_input = ffmpeg.input(str(music_path))
+                    music_input = ffmpeg.input(
+                        str(music_path), 
+                        format='mp3', 
+                        probesize=20000000, 
+                        analyzeduration=10000000
+                    )
+
+                   
                     
                     # Apply volume adjustment
                     # 'inf' means infinite loop? No, simple input for MVP.
