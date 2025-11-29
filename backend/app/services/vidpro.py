@@ -138,13 +138,19 @@ def apply_edits(input_path: str, actions: list) -> str:
                         analyzeduration=10000000
                     )
 
-                    music_stream = music_input.audio.filter('aresample', 48000).filter('channelconvert', channel_layout='stereo')
+                    music_stream = (
+            music_input
+            .filter('aresample', 48000)
+            .filter('aformat', channel_layouts='stereo')  # safer than channelconvert
+            .filter('acopy')
+            .filter('volume', vol)
+        )
                     
                   
                     # Apply volume adjustment
                     # 'inf' means infinite loop? No, simple input for MVP.
                     # We assume music is long enough. 
-                    music_stream = music_input.filter('volume', volume=vol)
+                   
                 else:
                     print(f"⚠️ Music file not found: {music_path}")
             # ------------------------
