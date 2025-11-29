@@ -1,9 +1,37 @@
 # backend/app/services/video_processor.py
 import ffmpeg
 import os
+import sys
 from pathlib import Path
 import whisper # <--- Add this at top
 from datetime import timedelta
+from pathlib import Path
+import shutil
+
+# --- HELPER: SUBTITLE GENERATION ---
+def generate_srt(transcription: dict, srt_path: str):
+    """Converts Whisper output to SRT format."""
+    with open(srt_path, "w", encoding="utf-8") as f:
+        for i, segment in enumerate(transcription["segments"]):
+            start = str(timedelta(seconds=int(segment["start"]))) + ",000"
+            end = str(timedelta(seconds=int(segment["end"]))) + ",000"
+            text = segment["text"].strip()
+            # SRT Format: 1 \n 00:00:01 --> 00:00:04 \n Text
+            f.write(f"{i+1}\n{start} --> {end}\n{text}\n\n")
+
+def add_subtitles(input_path: str):
+    """Runs Whisper and generates an SRT file."""
+    print(f"🎙️ [WHISPER] Loading model...")
+    model = whisper.load_model("tiny")
+    
+    print(f"🎙️ [WHISPER] Transcribing {input_path}...")
+    result = model.transcribe(input_path)
+    
+    srt_filename = input_path.replace(".mp4", ".srt")
+    generate_srt(result, srt_filename)
+    
+    print(f"✅ [WHISPER] Saved SRT to: {srt_filename}")
+    return srt_filename
 
 def get_video_metadata(file_path: str):
     """
@@ -38,28 +66,7 @@ def get_video_metadata(file_path: str):
         print(f"General Error during probing: {str(e)}")
         raise
 
-def generate_srt(transcription: dict, srt_path: str):
-    """Converts Whisper output to SRT format."""
-    with open(srt_path, "w", encoding="utf-8") as f:
-        for i, segment in enumerate(transcription["segments"]):
-            start = str(timedelta(seconds=int(segment["start"]))) + ",000"
-            end = str(timedelta(seconds=int(segment["end"]))) + ",000"
-            text = segment["text"].strip()
-            
-            # SRT Format:
-            # 1
-            # 00:00:01,000 --> 00:00:04,000
-            # Hello world
-            f.write(f"{i+1}\n{start} --> {end}\n{text}\n\n")
 
-def add_subtitles(input_path: str):
-    """Runs Whisper and generates an SRT file."""
-    model = whisper.load_model("tiny") # Use "base" or "small" for better accuracy (slower)
-    result = model.transcribe(input_path)
-    
-    srt_filename = input_path.replace(".mp4", ".srt")
-    generate_srt(result, srt_filename)
-    return srt_filename
 
 def apply_edits(input_path: str, actions: list) -> str:
     """
@@ -77,7 +84,7 @@ def apply_edits(input_path: str, actions: list) -> str:
         # 1. Setup Input Streams
         stream = ffmpeg.input(input_path)
         audio = stream.audio
-        
+        music_stream = None
         # 2. Define Font Path (Update this if your font name is different!)
         # We go up from services -> app -> backend -> assets
         base_dir = Path(__file__).resolve().parent.parent.parent
@@ -170,29 +177,36 @@ def apply_edits(input_path: str, actions: list) -> str:
                     .filter('aformat', channel_layouts='stereo')  # safer than channelconvert
                     .filter('acopy')
                     .filter('volume', vol)
-                    )
-                
+                )
                     
-                elif action['type'] == 'auto_subtitles':
-
-                    print("🎙️ Generating Subtitles...")
-                    srt_path = add_subtitles(input_path)
-                    
-                    # FFmpeg 'subtitles' filter requires the path to be escaped weirdly on Windows
-                    # We use the simplified filename if it's in the same folder
-                    # or strictly escaped absolute path. 
-                    # Simplest way for FFmpeg-python:
-                    # Note: Windows paths in FFmpeg filter strings are a nightmare.
-                    # We convert backslash to forward slash.
-                    clean_srt_path = srt_path.replace("\\", "/").replace(":", "\\:")
-                    
-                    stream = stream.filter('subtitles', clean_srt_path, force_style='FontName=Arial,FontSize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=1')
-                        # Apply volume adjustment
-                        # 'inf' means infinite loop? No, simple input for MVP.
-                        # We assume music is long enough. 
-                   
+                 
                 else:
                     print(f"⚠️ Music file not found: {music_path}")
+            
+            elif action['type'] == 'auto_subtitles':
+        
+                    print("🎙️ Processing Subtitles...")
+
+                    generated_srt_path = add_subtitles(input_path)
+                
+                # 2. Define a simple filename for the Project Root
+                # We use the unique video filename to avoid conflicts: "temp_subs_xyz.srt"
+                    root_srt_filename = f"temp_subs_{filename.replace('.mp4', '')}.srt"
+                    temp_srt_path = os.path.abspath(root_srt_filename)
+                    
+                    # 3. Copy the SRT file to the Project Root (Where Celery runs)
+                    shutil.copy2(generated_srt_path, temp_srt_path)
+                    print(f"DEBUG: Copied SRT to root for FFmpeg: {root_srt_filename}")
+
+                    # 4. Run FFmpeg using ONLY the filename (No drive letters, no paths)
+                    # FFmpeg will look in the current working directory and find it.
+                    stream = stream.filter(
+                        'subtitles', 
+                        root_srt_filename, 
+                        force_style='FontName=Arial,FontSize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=3,Outline=1,Shadow=0,MarginV=20'
+                    )
+
+
             # ------------------------
 
         # 4. Output
@@ -204,6 +218,7 @@ def apply_edits(input_path: str, actions: list) -> str:
         else:
             # Standard output if no music
             stream = ffmpeg.output(stream, audio, output_path)
+            print("🎬 Running FFmpeg...")
 
 
         ffmpeg.run(stream, overwrite_output=True)
@@ -213,3 +228,12 @@ def apply_edits(input_path: str, actions: list) -> str:
     except ffmpeg.Error as e:
         print(f"FFmpeg Execution Error: {e.stderr.decode('utf8') if e.stderr else str(e)}")
         raise
+    finally:
+        # Cleanup the temp file from Root
+        if temp_srt_path and os.path.exists(temp_srt_path):
+            try:
+                os.remove(temp_srt_path)
+                print(f"DEBUG: Cleaned up temp SRT file: {temp_srt_path}")
+            except:
+                pass
+    
