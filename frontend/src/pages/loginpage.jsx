@@ -26,7 +26,7 @@ const LoginPage = () => {
         setIsRegister(false);
       } else {
         localStorage.setItem('token', res.data.access_token);
-        navigate('/editor'); // Or '/dashboard' if you merge Harsh's home page
+        navigate('/dashboard'); // Or '/dashboard' if you merge Harsh's home page
       }
     } catch (err) {
       setError(err.response?.data?.detail || "Connection failed");
