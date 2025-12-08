@@ -9,7 +9,7 @@ from backend.app.routers import jobs, auth # <-- Import auth
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 from backend.app.db.database import engine, Base
-from backend.app.db.models import models
+from backend.app.db.models import VideoJob,User
 
 # --- THIS SECTION FIXES THE MODULE NOT FOUND ERROR ---
 # 1. Get the path to the directory containing 'backend' and 'frontend' (project root)
