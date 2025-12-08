@@ -28,47 +28,50 @@ app = FastAPI(
     title="EditVerse AI Backend",
     version="1.0.0",
 )
+origins=["https://editverse-kxhkxivs1-shreyas-projects-ce459247.vercel.app",
+                   "https://editverse-ai.vercel.app",
+                   "https://editverse-backend.onrender.com",
+                   "http://localhost:5173"]
 
 Base.metadata.create_all(bind=engine)
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["https://editverse-imqwvt9lq-shreyas-projects-ce459247.vercel.app",
-#                    "https://editverse-ai.vercel.app",
-#                    "http://localhost:5173"],
-#       # Allows requests from ANY website/IP
-#     allow_credentials=True,
-#     allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
-#     allow_headers=["*"],  # Allows all headers
-# )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+      # Allows requests from ANY website/IP
+      allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
 
-class CustomCORSMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request, call_next):
-        origin = request.headers.get("origin")
+# class CustomCORSMiddleware(BaseHTTPMiddleware):
+#     async def dispatch(self, request, call_next):
+#         origin = request.headers.get("origin")
 
-        # Allow localhost
-        allowed = [
-            "http://localhost:5173",
-            "https://editverse-ai.vercel.app",  # production
-        ]
+#         # Allow localhost
+#         allowed = [
+#             "http://localhost:5173",
+#             "https://editverse-ai.vercel.app",  # production
+#         ]
 
-        # Allow ANY Vercel preview domain for your project
-        if origin and (
-            origin.endswith("vercel.app") and "editverse" in origin
-        ):
-            allowed.append(origin)
+#         # Allow ANY Vercel preview domain for your project
+#         if origin and (
+#             origin.endswith("vercel.app") and "editverse" in origin
+#         ):
+#             allowed.append(origin)
 
-        response = await call_next(request)
+#         response = await call_next(request)
 
-        if origin in allowed:
-            response.headers["Access-Control-Allow-Origin"] = origin
-            response.headers["Access-Control-Allow-Credentials"] = "true"
-            response.headers["Access-Control-Allow-Headers"] = "*"
-            response.headers["Access-Control-Allow-Methods"] = "*"
+#         if origin in allowed:
+#             response.headers["Access-Control-Allow-Origin"] = origin
+#             response.headers["Access-Control-Allow-Credentials"] = "true"
+#             response.headers["Access-Control-Allow-Headers"] = "*"
+#             response.headers["Access-Control-Allow-Methods"] = "*"
 
-        return response
+#         return response
 
 
-app.add_middleware(CustomCORSMiddleware)
+# app.add_middleware(CustomCORSMiddleware)
 
 # ... rest of your code ...
 app.include_router(jobs.router, prefix="/jobs", tags=["Jobs"])
