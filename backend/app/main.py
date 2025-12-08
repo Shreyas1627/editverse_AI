@@ -26,7 +26,8 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://editverse-cqicy7oc5-shreyas-projects-ce459247.vercel.app/"],  # Allows requests from ANY website/IP
+    allow_origins=["https://editverse-elyd99vzl-shreyas-projects-ce459247.vercel.app/"],
+      # Allows requests from ANY website/IP
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods (GET, POST, etc.)
     allow_headers=["*"],  # Allows all headers
