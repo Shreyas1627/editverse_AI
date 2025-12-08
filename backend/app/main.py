@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.routers import jobs, auth # <-- Import auth
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
+from backend.app.db.database import engine, Base
+from backend.app.db.models import models
 
 # --- THIS SECTION FIXES THE MODULE NOT FOUND ERROR ---
 # 1. Get the path to the directory containing 'backend' and 'frontend' (project root)
@@ -26,6 +28,8 @@ app = FastAPI(
     title="EditVerse AI Backend",
     version="1.0.0",
 )
+
+Base.metadata.create_all(bind=engine)
 # app.add_middleware(
 #     CORSMiddleware,
 #     allow_origins=["https://editverse-imqwvt9lq-shreyas-projects-ce459247.vercel.app",
