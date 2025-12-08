@@ -36,8 +36,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "default_insecure_key_if_missing"
     
     # Celery settings
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
+    # REDIS_HOST: str = "localhost"
+    # REDIS_PORT: int = 6379
     
     SAMBANOVA_API_KEY: str="3ba5261e-561f-4d19-b856-347f7b8840ef"
     # The URL for SambaNova's API
@@ -45,13 +45,13 @@ class Settings(BaseSettings):
     # We will use the fast Llama 3.1 8B model
     SAMBANOVA_MODEL: str = "Meta-Llama-3.1-8B-Instruct"
 
-    @property
-    def CELERY_BROKER_URL(self) -> str:
-        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
+    # @property
+    # def CELERY_BROKER_URL(self) -> str:
+    #     return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
 
-    @property
-    def CELERY_RESULT_BACKEND(self) -> str:
-        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
+    # @property
+    # def CELERY_RESULT_BACKEND(self) -> str:
+    #     return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/0"
 
     # This tells Pydantic to also look for the file here
     model_config = SettingsConfigDict(env_file=str(env_path), env_file_encoding='utf-8')

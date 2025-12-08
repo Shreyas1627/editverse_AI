@@ -2,8 +2,8 @@
 import ffmpeg
 import os
 import sys
-from pathlib import Path
-import whisper # <--- Add this at top
+# from pathlib import Path
+# import whisper # <--- Add this at top
 from datetime import timedelta
 from pathlib import Path
 import shutil
@@ -21,19 +21,19 @@ def generate_srt(transcription: dict, srt_path: str):
             # SRT Format: 1 \n 00:00:01 --> 00:00:04 \n Text
             f.write(f"{i+1}\n{start} --> {end}\n{text}\n\n")
 
-def add_subtitles(input_path: str):
-    """Runs Whisper and generates an SRT file."""
-    print(f"🎙️ [WHISPER] Loading model...")
-    model = whisper.load_model("tiny")
+# def add_subtitles(input_path: str):
+#     """Runs Whisper and generates an SRT file."""
+#     print(f"🎙️ [WHISPER] Loading model...")
+#     model = whisper.load_model("tiny")
     
-    print(f"🎙️ [WHISPER] Transcribing {input_path}...")
-    result = model.transcribe(input_path)
+#     print(f"🎙️ [WHISPER] Transcribing {input_path}...")
+#     result = model.transcribe(input_path)
     
-    srt_filename = input_path.replace(".mp4", ".srt")
-    generate_srt(result, srt_filename)
+#     srt_filename = input_path.replace(".mp4", ".srt")
+#     generate_srt(result, srt_filename)
     
-    print(f"✅ [WHISPER] Saved SRT to: {srt_filename}")
-    return srt_filename
+#     print(f"✅ [WHISPER] Saved SRT to: {srt_filename}")
+#     return srt_filename
 
 def detect_silence(input_path: str, db_threshold=-30, min_duration=0.5):
     """
@@ -251,28 +251,28 @@ def apply_edits(input_path: str, actions: list) -> str:
                 else:
                     print(f"⚠️ Music file not found: {music_path}")
             
-            elif action['type'] == 'auto_subtitles':
+            # elif action['type'] == 'auto_subtitles':
         
-                    print("🎙️ Processing Subtitles...")
+            #         print("🎙️ Processing Subtitles...")
 
-                    generated_srt_path = add_subtitles(input_path)
+            #         generated_srt_path = add_subtitles(input_path)
                 
-                # 2. Define a simple filename for the Project Root
-                # We use the unique video filename to avoid conflicts: "temp_subs_xyz.srt"
-                    root_srt_filename = f"temp_subs_{filename.replace('.mp4', '')}.srt"
-                    temp_srt_path = os.path.abspath(root_srt_filename)
+            #     # 2. Define a simple filename for the Project Root
+            #     # We use the unique video filename to avoid conflicts: "temp_subs_xyz.srt"
+            #         root_srt_filename = f"temp_subs_{filename.replace('.mp4', '')}.srt"
+            #         temp_srt_path = os.path.abspath(root_srt_filename)
                     
-                    # 3. Copy the SRT file to the Project Root (Where Celery runs)
-                    shutil.copy2(generated_srt_path, temp_srt_path)
-                    print(f"DEBUG: Copied SRT to root for FFmpeg: {root_srt_filename}")
+            #         # 3. Copy the SRT file to the Project Root (Where Celery runs)
+            #         shutil.copy2(generated_srt_path, temp_srt_path)
+            #         print(f"DEBUG: Copied SRT to root for FFmpeg: {root_srt_filename}")
 
-                    # 4. Run FFmpeg using ONLY the filename (No drive letters, no paths)
-                    # FFmpeg will look in the current working directory and find it.
-                    stream = stream.filter(
-                        'subtitles', 
-                        root_srt_filename, 
-                        force_style='FontName=Arial,FontSize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=3,Outline=1,Shadow=0,MarginV=20'
-                    )
+            #         # 4. Run FFmpeg using ONLY the filename (No drive letters, no paths)
+            #         # FFmpeg will look in the current working directory and find it.
+            #         stream = stream.filter(
+            #             'subtitles', 
+            #             root_srt_filename, 
+            #             force_style='FontName=Arial,FontSize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,BorderStyle=3,Outline=1,Shadow=0,MarginV=20'
+            #         )
             elif action['type'] == 'remove_silence':
                 continue # Already handled above
 

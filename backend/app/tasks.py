@@ -1,5 +1,5 @@
 # backend/app/tasks.py
-from backend.app.core.celeryapp import celery_app
+# from backend.app.core.celeryapp import celery_app
 from backend.app.services.vidpro import get_video_metadata,apply_edits
 
 from backend.app.db.database import SessionLocal 
@@ -10,7 +10,7 @@ import os
 import time
 
 
-@celery_app.task
+# @celery_app.task
 def dummy_video_processing(job_id: str, filename: str):
     db = SessionLocal()
 
@@ -61,7 +61,7 @@ def dummy_video_processing(job_id: str, filename: str):
         print(f"❌ [WORKER] FAILED: {str(e)}")
         return {"status": "FAILED", "error": str(e)}
     
-@celery_app.task
+# @celery_app.task
 def process_video_edit(job_id: str, prompt: str):
     """
     Step 2 Task: Receives a prompt, parses it, and (eventually) runs FFmpeg.
