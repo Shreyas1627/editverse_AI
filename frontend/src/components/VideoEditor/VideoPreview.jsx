@@ -28,6 +28,7 @@ export default function VideoPreview({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const internalVideoRef = useRef(null);
   const inputRef = useRef(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Expose the video seek function to parent
   useEffect(() => {
@@ -47,7 +48,7 @@ export default function VideoPreview({
       setVideoUrl(videoSrc);
       setHasVideo(true);
     }
-  }, [videoSrc]); 
+  }, [videoSrc]);
   // 👆 END NEW EFFECT 👆
 
   // Sync video muted state
@@ -275,6 +276,20 @@ export default function VideoPreview({
               onDurationChange={handleDurationChange}
               onTimeUpdate={onTimeUpdate}
             />
+            {/* --- ADD THIS LOADING OVERLAY --- */}
+            {isProcessing && (
+              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center z-50">
+                {/* The Spinner */}
+                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500 mb-4"></div>
+                {/* The Text */}
+                <p className="text-white text-lg font-semibold animate-pulse">
+                  Applying AI Magic...
+                </p>
+                <p className="text-gray-400 text-sm mt-2">
+                  (This might take 1-2 mins on free server)
+                </p>
+              </div>
+            )}
             <div style={styles.centerButton}>
               <button style={styles.playOverlay} onClick={onPlayPause}>
                 {isPlaying ? <Pause size={24} /> : <Play size={24} />}

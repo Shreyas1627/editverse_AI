@@ -26,6 +26,8 @@ const EditorPage = () => {
     const [videoSrc, setVideoSrc] = useState(null); // To store the server URL of the video
     const [isExportOpen, setIsExportOpen] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
+    // Inside your component
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const videoSeekRef = useRef(null);
     const videoRef = useRef(null);
@@ -545,6 +547,7 @@ const EditorPage = () => {
             alert("Upload a video first.");
             return;
         }
+        setIsProcessing(true);
 
         const userMessage = { id: messages.length + 1, role: 'user', content, timestamp: new Date() };
         setMessages(prev => [...prev, userMessage]);
@@ -559,6 +562,10 @@ const EditorPage = () => {
         } catch (err) {
             console.error("Prompt send error:", err);
             setMessages(prev => [...prev, { id: Date.now(), role: 'assistant', content: 'Failed to reach the AI brain.', timestamp: new Date() }]);
+        }
+        finally {
+            // 3. Stop Loading (Runs whether success or error)
+            setIsProcessing(false);
         }
 
         // try {
@@ -702,6 +709,7 @@ const EditorPage = () => {
                         projectName={projectName}
                         onProjectNameChange={handleProjectNameChange}
                         adjustments={adjustments}
+                        isProcessing={isProcessing}
                     />
 
                     <Timeline
