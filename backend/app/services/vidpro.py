@@ -131,6 +131,10 @@ def apply_edits(input_path: str, actions: list) -> str:
         return input_path
 
     try:
+
+        meta = get_video_metadata(input_path)
+        width = meta['width']
+        height = meta['height']
         # 1. Setup Input Streams
         stream = ffmpeg.input(input_path)
         audio = stream.audio
@@ -172,10 +176,47 @@ def apply_edits(input_path: str, actions: list) -> str:
             
             # --- FILTERS ---
             elif action['type'] == 'filter':
-                if action.get('name') == 'grayscale':
+                name=action.get('name')
+                if name == 'grayscale':
                     stream = stream.hue(s=0)
-                elif action.get('name') == 'contrast':
+                elif name== 'contrast' or name=='dramatic':
                     stream = stream.eq(contrast=1.5)
+                elif name == 'warm_tone' or name == 'warmtone':
+                    # Increase Red, Decrease Blue slightly
+                    stream = stream.colorbalance(rs=0.1, bs=-0.1)
+                elif name == 'cool_tone':
+                    # Increase Blue
+                    stream = stream.colorbalance(bs=0.2)
+                elif name == 'retro' or name == 'vintage':
+                    print("📼 Applying Retro/VHS Effect...")
+                    # 1. Create a noise generator stream with same resolution
+                    noise = (
+                        ffmpeg
+                        .input(f"s={width}x{height}", f="lavfi", i="nullsrc")
+                        .filter("noise", alls="20", allf="t+u")
+                    )
+                    # 2. Overlay noise on current stream + Apply Vintage Curves
+                    stream = (
+                        ffmpeg
+                        .overlay(stream, noise, format="yuv420", shortest=1)
+                        .filter("eq", contrast=1.2, saturation=0.6)
+                        .filter("curves", preset="vintage")
+                    )
+                elif action['type'] == 'zoom':
+                    print("🔍 Applying Dramatic Zoom...")
+                    # Zooms in 50% over 25 seconds (approx) or duration of clip
+                    # z='min(zoom+0.0015,1.5)': Increases zoom per frame
+                    # d=1: Reset internal counter? No, let's use standard slow zoom
+                    # s=WxH: Output size must match input size
+                    stream = stream.filter(
+                        "zoompan", 
+                        z='min(zoom+0.0015,1.5)', 
+                        d=700, 
+                        x='iw/2-(iw/zoom/2)', 
+                        y='ih/2-(ih/zoom/2)', 
+                        s=f"{width}x{height}"
+                    )
+                
 
             # --- SPEED (New!) ---
             elif action['type'] == 'speed':

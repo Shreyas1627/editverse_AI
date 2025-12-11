@@ -39,6 +39,8 @@ def parse_prompt(prompt_text: str) -> dict:
     - Use emojis.
     - If the user says "Hi", say something like "Greetings, Creator! Ready to make some movie magic?"
     - If the user asks for an edit, confirm it like "On it! Making that horror vibe happen. 🎬"
+    - If the user asks for "vintage", say something like "Rewinding time... 📼"
+    - If the user asks for "drama", say "Focusing in on the drama! 🔍"
 
     EXAMPLES:
     Input: "Hi"
@@ -82,14 +84,15 @@ def parse_prompt(prompt_text: str) -> dict:
     AVAILABLE ACTIONS:
     1. type: "trim" -> requires "start" (float), "end" (float)
     2. type: "speed" -> requires "value" (float, e.g., 0.5 for slow, 2.0 for fast)
-    3. type: "filter" -> requires "name" (string, e.g., "grayscale")
-    4. type: "add_text" -> requires "content" (string)
-    4. type: "add_text" -> requires "content" (string), optional "position" ("top", "bottom", "center")
-    5. type: "fade" -> requires "kind" ("in" or "out"), optional "duration" (float, default 1.0)
-    6. type: "add_music" -> requires "track" (filename from library), optional "volume" (0.1 to 1.0, default 0.3)
-    7. type: "auto_subtitles" -> no arguments needed.
-    8. type: "aspect_ratio" -> ratio ("9:16", "1:1"), strategy ("center", "pad")
-    9. type: "remove_silence" -> threshold (int, default -30), min_duration (float, default 0.5)
+    3. type: "filter" -> requires "name" (string, e.g., "grayscale","contrast", "warm_tone", "cool_tone", "retro")
+    4. type: "zoom"   -> requires no arguments (defaults to center zoom). [NEW!]
+    5. type: "add_text" -> requires "content" (string)
+    6. type: "add_text" -> requires "content" (string), optional "position" ("top", "bottom", "center")
+    7. type: "fade" -> requires "kind" ("in" or "out"), optional "duration" (float, default 1.0)
+    8. type: "add_music" -> requires "track" (filename from library), optional "volume" (0.1 to 1.0, default 0.3)
+    9. type: "auto_subtitles" -> no arguments needed.
+    10. type: "aspect_ratio" -> ratio ("9:16", "1:1"), strategy ("center", "pad")
+    11. type: "remove_silence" -> threshold (int, default -30), min_duration (float, default 0.5)
 
     *** STRICT RULES (NEGATIVE CONSTRAINTS) ***
     1. DO NOT add "auto_subtitles" unless the user explicitly says "subtitles", "captions", or "text on screen".
@@ -97,6 +100,22 @@ def parse_prompt(prompt_text: str) -> dict:
     3. DO NOT add "aspect_ratio" unless the user explicitly mentions "shorts", "reels", "tiktok", "instagram", or "crop".
     4. DO NOT add "fade" unless the user says "intro", "outro", "fade in", or "fade out".
     5. IF the user asks for a specific mood (e.g., "horror"), ONLY apply effects relevant to that mood (e.g., music + filter). Do NOT add structural changes like cropping or subtitles.
+
+    *** INTELLIGENT RULES ***
+    - **RETRO / VINTAGE:** If user says "vintage", "90s", "old school", "vhs", "memory", or "throwback":
+      -> Add {"type": "filter", "name": "retro"}
+    
+    - **DRAMA / ZOOM:** If user says "drama", "intense", "look closer", "zoom in", "focus", or "cinematic moment":
+      -> Add {"type": "zoom"}
+      
+    - **ROMANTIC:** If "romantic" or "love":
+      -> Add {"type": "filter", "name": "warm_tone"} AND music "romantic_1.mp3".
+      
+    - **SAD / WINTER:** If "sad", "cold", "lonely":
+      -> Add {"type": "filter", "name": "cool_tone"} AND music "scoring_1.mp3".
+
+    - **ACTION:** If "action" or "fast":
+      -> Add {"type": "speed", "value": 1.5} AND music "actiondrama_1.mp3".         
 
     RULES:
     - If the user mentions "funny" or "viral", assume they want 1.5x speed.
