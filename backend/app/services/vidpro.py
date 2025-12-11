@@ -194,7 +194,7 @@ def apply_edits(input_path: str, actions: list) -> str:
                     # 1. Create a noise generator stream with same resolution
                     noise = (
                         ffmpeg
-                        .input(f"s={width}x{height}", f="lavfi")
+                        .input(noise_input_str, f="lavfi")
                         .filter("noise", alls="20", allf="t+u")
                     )
                     # 2. Overlay noise on current stream + Apply Vintage Curves
