@@ -558,7 +558,7 @@ const EditorPage = () => {
 
             // 3. Start waiting for the REAL reply (Silent wait)
             startPollingStatus(jobId);
-            
+
 
         } catch (err) {
             console.error("Prompt send error:", err);
@@ -603,7 +603,22 @@ const EditorPage = () => {
                     const aiMessage = data.ai_reply || 'Editing magic complete! ✨';
                     setMessages(prev => [...prev, { id: Date.now(), role: 'assistant', content: aiMessage, timestamp: new Date() }]);
                     setIsProcessing(false);
-                } else if (data.status === "FAILED") {
+                }
+                else if (data.status === "CHAT_ONLY") {
+                    clearInterval(statusPollRef.current);
+
+                    // Note: We SKIP downloadEditedVideo() here!
+
+                    const aiMessage = data.ai_reply || 'I am ready to help!';
+                    setMessages(prev => [...prev, {
+                        id: Date.now(),
+                        role: 'assistant',
+                        content: aiMessage,
+                        timestamp: new Date()
+                    }]);
+                    setIsProcessing(false); // Stop the spinner immediately
+                }
+                else if (data.status === "FAILED") {
                     clearInterval(statusPollRef.current);
                     setIsProcessing(false);
                     statusPollRef.current = null;

@@ -340,7 +340,7 @@ def apply_edits(input_path: str, actions: list) -> str:
                     stream = stream.filter('crop', 'ih', 'ih', '(iw-ow)/2', '0')
 
 
-            # ------------------------
+          # ------------------------
 
         # 4. Output
         if music_stream:

@@ -89,7 +89,7 @@ def process_video_edit(job_id: str, prompt: str):
 
         if not actions:
             print("🛑 [WORKER] No actions detected. Treating as chat.")
-            job.status = "COMPLETED" # Mark done so frontend sees the reply
+            job.status = "CHAT_ONLY" # Mark done so frontend sees the reply
             # We DO NOT update job.edited_file_path, so the video stays same
             db.commit()
             return {"status": "CHAT_ONLY", "reply": reply}
@@ -99,7 +99,8 @@ def process_video_edit(job_id: str, prompt: str):
         original_path = job.original_file_path
 
         input_path = job.edited_file_path if job.edited_file_path else original_path
-        edited_path = apply_edits(original_path, actions)
+        print(f"🔗 [CHAINING] Using input file: {input_path}") # Optional: Debug print
+        edited_path = apply_edits(input_path, actions)
         
         # 3. Update Status
         job.edited_file_path = edited_path
